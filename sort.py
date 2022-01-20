@@ -45,11 +45,11 @@ def getSongInfo():
     
     return song_list
 
-def addSongToPlaylist(song_hash, playlist_file):
+def addSongToPlaylist(song_name, song_hash, playlist_file):
     with open(playlist_file, 'r+', encoding="utf8") as f:
         playlist_data = json.load(f)
         
-        playlist_data["songs"].append({'hash': song_hash})
+        playlist_data["songs"].append({'songName': song_name, 'hash': song_hash})
         f.seek(0)
         f.write(json.dumps(playlist_data, indent=4))
         f.truncate()
@@ -57,10 +57,10 @@ def addSongToPlaylist(song_hash, playlist_file):
 hashed = getHashedSongs()
 songs = getSongInfo()
 
-for k,v in songs.items():
-    if k not in hashed:
-        selection_title = f"Song '{v}' not in any playlist.\nAdd '{v}' to playlist:"
+for s_hash,s_title in songs.items():
+    if s_hash not in hashed:
+        selection_title = f"Song '{s_title}' not in any playlist.\nAdd '{s_title}' to playlist:"
         selection_options = (["SKIP"] + [os.path.splitext(os.path.relpath(p, PLAYLISTS))[0] for p in getPlaylists()])
         selection, idx = pick(selection_options, selection_title, indicator="-->")
         if selection != "SKIP":
-            addSongToPlaylist(k, getPlaylists()[idx-1])
+            addSongToPlaylist(s_title, s_hash, getPlaylists()[idx-1])
