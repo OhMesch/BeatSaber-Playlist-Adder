@@ -17,7 +17,7 @@ def getPlaylists():
 def getHashedSongs():
     hashed = set()
     for p in getPlaylists():
-        with open(p) as f:
+        with open(p, encoding="utf8") as f:
             playlist_data = json.load(f)
             for song_data in playlist_data.get("songs", []):
                 if "hash" in song_data:
@@ -25,10 +25,10 @@ def getHashedSongs():
     return hashed
 
 def generateSongHash(info_file, song_data):
-    with open(info_file) as f:
+    with open(info_file, encoding="utf8") as f:
         hash_string = f.read()
     for difficulty in song_data["_difficultyBeatmapSets"][0]["_difficultyBeatmaps"]:
-        with open(os.path.join(os.path.dirname(info_file), difficulty["_beatmapFilename"])) as f:
+        with open(os.path.join(os.path.dirname(info_file), difficulty["_beatmapFilename"]), encoding="utf8") as f:
             hash_string = "".join([hash_string, f.read()])
     return hashlib.sha1(hash_string.encode()).hexdigest()
 
@@ -38,7 +38,7 @@ def getSongInfo():
         reg = re.search("info.dat", " ".join(os.listdir(song_dir)), flags=re.IGNORECASE)
         if reg:
             song_info_path = os.path.join(song_dir.path, reg.group(0))
-            with open(song_info_path) as f:
+            with open(song_info_path, encoding="utf8") as f:
                 song_data = json.load(f, object_pairs_hook=OrderedDict)
                 song_hash = generateSongHash(song_info_path, song_data)
                 song_list[song_hash.upper()] = song_data["_songName"]
@@ -46,7 +46,7 @@ def getSongInfo():
     return song_list
 
 def addSongToPlaylist(song_hash, playlist_file):
-    with open(playlist_file, 'r+') as f:
+    with open(playlist_file, 'r+', encoding="utf8") as f:
         playlist_data = json.load(f)
         
         playlist_data["songs"].append({'hash': song_hash})
