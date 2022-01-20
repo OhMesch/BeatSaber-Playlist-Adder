@@ -51,7 +51,7 @@ def addSongToPlaylist(song_hash, playlist_file):
         
         playlist_data["songs"].append({'hash': song_hash})
         f.seek(0)
-        f.write(json.dumps(playlist_data))
+        f.write(json.dumps(playlist_data, indent=4))
         f.truncate()
 
 hashed = getHashedSongs()
