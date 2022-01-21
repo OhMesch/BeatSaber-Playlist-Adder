@@ -1,3 +1,2 @@
 pick
-playsound
-pygobject
+pygame

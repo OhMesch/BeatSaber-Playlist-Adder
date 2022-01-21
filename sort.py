@@ -4,7 +4,6 @@ import hashlib
 import json
 import os
 from pick import pick
-from playsound import playsound
 import re
 from zipfile import ZipFile
 
@@ -16,6 +15,11 @@ parser.add_argument("--no-unzip", action='store_true', help="If flag is set, do 
 parser.add_argument("--no-sort", action='store_true', help="If flag is set, do not prompt user to add unsorted songs to playlists.", dest="NO_SORT")
 parser.add_argument("--play-song", action='store_true', help="If flag is set, play songs suring playlist selection.", dest="PLAY_SONG")
 args = parser.parse_args()
+#TODO Add verbose
+
+if args.PLAY_SONG:
+    os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+    from pygame import mixer
 
 def getZippedSongs():
     zipped_songs = []
@@ -89,14 +93,24 @@ def promptAddUnsortedToPlaylist(play_audio):
     songs = getSongInfo()
     for s_hash,s_info in songs.items():
         if s_hash not in hashed:
+            if play_audio:
+                mixer.music.load(s_info['SongFile'])
+                mixer.music.play()
             selection_title = f"Song '{s_info['SongName']}' by '{s_info['ArtistName']}' not in any playlist.\nAdd '{s_info['SongName']}' to playlist:"
             selection_options = (["SKIP"] + [os.path.splitext(os.path.relpath(p, args.PLAYLISTS_DIR))[0] for p in getPlaylists()])
             selection, idx = pick(selection_options, selection_title, indicator="-->")
             if selection != "SKIP":
                 addSongToPlaylist(s_info["SongName"], s_hash, getPlaylists()[idx-1])
+            if play_audio:
+                mixer.music.stop()
+                mixer.music.unload()
 
 if not args.NO_UNZIP:
+    print("Unzipping new Songs")
     unzipNewSongs()
 
 if not args.NO_SORT:
+    print("Sorting existing Songs")
+    if args.PLAY_SONG:
+        mixer.init()
     promptAddUnsortedToPlaylist(args.PLAY_SONG)
