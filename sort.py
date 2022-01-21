@@ -4,9 +4,21 @@ import json
 import os
 from pick import pick
 import re
+from zipfile import ZipFile
 
 SONGS = "/home/mesch/programming/song-sorter/songs"
 PLAYLISTS = "/home/mesch/programming/song-sorter/playlists"
+DOWNLOADS = "/home/mesch/Downloads"
+
+def getZippedSongs():
+    zipped_songs = []
+    for root, dirs, files in os.walk(DOWNLOADS):
+        for zip_file in [os.path.join(root, f) for f in files if f.endswith('.zip')]:
+            with ZipFile(zip_file, 'r') as zf:
+                if re.search("info.dat", " ".join(zf.namelist()), flags=re.IGNORECASE):
+                    zipped_songs.append(zip_file)
+
+    return zipped_songs
 
 def getPlaylists():
     playlists = []
@@ -54,8 +66,14 @@ def addSongToPlaylist(song_name, song_hash, playlist_file):
         f.write(json.dumps(playlist_data, indent=4))
         f.truncate()
 
+zipped  = getZippedSongs()
 hashed = getHashedSongs()
 songs = getSongInfo()
+
+for zip_file in zipped:
+    with ZipFile(zip_file, 'r') as zf:
+        zf.extractall(os.path.join(SONGS, os.path.splitext(os.path.basename(zip_file))[0]))
+    os.remove(zip_file)
 
 for s_hash,s_title in songs.items():
     if s_hash not in hashed:
